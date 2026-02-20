@@ -8,21 +8,21 @@
   },
   {
     "Name": "Portfolio",
-    "Link": "https://dub.sh/notnahid",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Portfolio.ps1",
     "Desc": "Open my portfolio website",
     "Category": "Personal",
     "Tags": ["portfolio", "website"]
   },
   {
     "Name": "Rename Tool",
-    "Link": "https://dub.sh/rename",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Rename%20Tool.ps1",
     "Desc": "Bulk rename files easily",
     "Category": "File Management",
     "Tags": ["files", "rename", "bulk"]
   },
   {
     "Name": "FFmpeg With GUI",
-    "Link": "https://gist.githubusercontent.com/NotNahid/597ba29f82e30a4a6d3b9f6c92e95dcc/raw/cc97c5c4cac6b89495e19871e3ce50318936650d/FFmpegGUI.ps1",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/FFmpeg%20With%20GUI.ps1",
     "Desc": "Use FFmpeg in GUI Edit Video and Audio too!",
     "Category": "Editing",
     "Tags": ["system", "info", "diagnostic"]
@@ -36,7 +36,7 @@
   },
   {
     "Name": "File Organizer",
-    "Link": "https://gist.githubusercontent.com/NotNahid/4825d849656826c378aadb81390ce9d9/raw/File_Organizer.ps1",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/File%20Organizer.ps1",
     "Desc": "File Organizer",
     "Category": "Security",
     "Tags": ["password", "security", "generator"]
@@ -50,7 +50,7 @@
   },
   {
     "Name": "Quick Tools in System Trey",
-    "Link": "https://raw.githubusercontent.com/NotNahid/use/refs/heads/main/Powershell/Quick%20Utiltiy.ps1",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Quick%20Tools%20in%20System%20Trey.ps1",
     "Desc": "Advanced clipboard management",
     "Category": "Productivity",
     "Tags": ["clipboard", "copy", "paste"]
