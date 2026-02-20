@@ -29,7 +29,7 @@
   },
   {
     "Name": "Network Speed Monitor",
-    "Link": "https://gist.githubusercontent.com/NotNahid/4db4bcd3c7ee8b7ed4c9f936f2aba3cf/raw/d423b1fc6405063cd0f2f7fbc574abe07c272508/Network%2520Speed%2520Monitor.ps1",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Network%20Speed%20Monitor.ps1",
     "Desc": "Network Speed Monitor",
     "Category": "Network",
     "Tags": ["network", "scan", "devices"]
