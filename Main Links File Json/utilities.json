@@ -1,0 +1,58 @@
+[
+  {
+    "Name": "Ghost Typer",
+    "Link": "https://gist.githubusercontent.com/NotNahid/70de29086ac0bbeab57a9a75a4f04a89/raw/copy-script.ps1",
+    "Desc": "Auto-type text anywhere",
+    "Category": "Automation",
+    "Tags": ["typing", "automation", "productivity"]
+  },
+  {
+    "Name": "Portfolio",
+    "Link": "https://dub.sh/notnahid",
+    "Desc": "Open my portfolio website",
+    "Category": "Personal",
+    "Tags": ["portfolio", "website"]
+  },
+  {
+    "Name": "Rename Tool",
+    "Link": "https://dub.sh/rename",
+    "Desc": "Bulk rename files easily",
+    "Category": "File Management",
+    "Tags": ["files", "rename", "bulk"]
+  },
+  {
+    "Name": "FFmpeg With GUI",
+    "Link": "https://gist.githubusercontent.com/NotNahid/597ba29f82e30a4a6d3b9f6c92e95dcc/raw/cc97c5c4cac6b89495e19871e3ce50318936650d/FFmpegGUI.ps1",
+    "Desc": "Use FFmpeg in GUI Edit Video and Audio too!",
+    "Category": "Editing",
+    "Tags": ["system", "info", "diagnostic"]
+  },
+  {
+    "Name": "Network Speed Monitor",
+    "Link": "https://gist.githubusercontent.com/NotNahid/4db4bcd3c7ee8b7ed4c9f936f2aba3cf/raw/d423b1fc6405063cd0f2f7fbc574abe07c272508/Network%2520Speed%2520Monitor.ps1",
+    "Desc": "Network Speed Monitor",
+    "Category": "Network",
+    "Tags": ["network", "scan", "devices"]
+  },
+  {
+    "Name": "File Organizer",
+    "Link": "https://gist.githubusercontent.com/NotNahid/4825d849656826c378aadb81390ce9d9/raw/File_Organizer.ps1",
+    "Desc": "File Organizer",
+    "Category": "Security",
+    "Tags": ["password", "security", "generator"]
+  },
+  {
+    "Name": "Christitus Ultimate Utility",
+    "Link": "https://christitus.com/win",
+    "Desc": "Advanced clipboard management",
+    "Category": "Productivity",
+    "Tags": ["clipboard", "copy", "paste"]
+  },
+  {
+    "Name": "Quick Tools in System Trey",
+    "Link": "https://raw.githubusercontent.com/NotNahid/use/refs/heads/main/Powershell/Quick%20Utiltiy.ps1",
+    "Desc": "Advanced clipboard management",
+    "Category": "Productivity",
+    "Tags": ["clipboard", "copy", "paste"]
+  }
+]
