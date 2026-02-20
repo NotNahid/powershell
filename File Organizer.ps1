@@ -372,19 +372,7 @@ $form.Add_FormClosing({
     Save-Stats -Stats $global:Stats
 })
 
-# Drag and Drop
-$form.Add_DragEnter({
-    if ($_.Data.GetDataPresent([System.Windows.Forms.DataFormats]::FileDrop)) {
-        $paths = $_.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)
-        if ($paths.Count -gt 0 -and (Test-Path $paths[0] -PathType Container)) {
-            $_.Effect = [System.Windows.Forms.DragDropEffects]::Link
-        } else { $_.Effect = [System.Windows.Forms.DragDropEffects]::None }
-    }
-})
-$form.Add_DragDrop({
-    $paths = $_.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)
-    if ($paths.Count -gt 0 -and (Test-Path $paths[0] -PathType Container)) { Set-SelectedFolder -Path $paths[0] }
-})
+
 
 # ========================== MAIN LAYOUT ==========================
 $mainPanel = New-Object System.Windows.Forms.TableLayoutPanel
