@@ -14,8 +14,8 @@ Run that in PowerShell and the dashboard opens, ready to launch any tool in the 
 ![Stars](https://img.shields.io/github/stars/NotNahid/powershell?style=social)
 
 ---
-For ME: 
-Update Just the Utilities.json file with the code and it auto set's it up with is.gd/notnahid, so all works just fine.
+# For ME: 
+# Update Just the Utilities.json file with the code and it auto set's it up with is.gd/notnahid, so all works just fine.
 ## ✨ What is this?
 
 This repo is a grab-bag of standalone PowerShell (and a few Python) scripts, each solving one small annoying problem — renaming files, organizing downloads, checking network speed, and so on. Instead of digging through the repo for the script you want, `ultimate.ps1` acts as a **dashboard**: a dark/light-themed GUI that lists every tool, lets you search and read what each one does, and downloads + runs it on demand in the background.
