@@ -56,6 +56,13 @@
     "Tags": ["Clicks", "copy", "paste"]
   },
   {
+    "Name": "Live Wallpaer with Python",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/live_wallpaper.ps1",
+    "Desc": "Wallpaper Live",
+    "Category": "Fun",
+    "Tags": ["Clicks", "copy", "paste"]
+  },
+  {
     "Name": "Quick Tools in System Trey",
     "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Quick%20Tools%20in%20System%20Trey.ps1",
     "Desc": "Advanced clipboard management",
