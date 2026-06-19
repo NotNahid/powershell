@@ -48,6 +48,13 @@
     "Category": "Productivity",
     "Tags": ["clipboard", "copy", "paste"]
   },
+   {
+    "Name": "Auto Clicker",
+    "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Auto%20Clicker.ps1",
+    "Desc": "It Auto Clicks",
+    "Category": "Productivity",
+    "Tags": ["Clicks", "copy", "paste"]
+  },
   {
     "Name": "Quick Tools in System Trey",
     "Link": "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Quick%20Tools%20in%20System%20Trey.ps1",
