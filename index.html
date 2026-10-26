@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nahid’s PowerShell Toolkit</title>
+<meta name="description" content="Small Windows utilities, launched from one dashboard. Hover a tool, click to copy its run command.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%231a1917%22%20d%3D%22M0%200h32v32H0z%22%2F%3E%3Cpath%20d%3D%22m7%2010%206%206-6%206m11%200h7%22%20fill%3D%22none%22%20stroke%3D%22%23f8f5f2%22%20stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E">
+<style>
+@font-face{font-family:"PP Neue Montreal";src:url("https://cdn.prod.website-files.com/6819ed8312518f61b84824df/6819ed8312518f61b84825ba_PPNeueMontreal-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+*,*:before,*:after{margin:0;padding:0;box-sizing:border-box}
+:root{--warm-off-black:#1a1917;--warm-off-white:#f8f5f2;--color-1:#f8f5f2;--color-2:#e55050;--color-3:#7aa7ff;--color-4:#ffd36e;
+--linear-ease:linear(0,0.068,0.19 2.7%,0.804 8.1%,1.037,1.199 13.2%,1.245,1.27 15.8%,1.274,1.272 17.4%,1.249 19.1%,0.996 28%,0.949,0.928 33.3%,0.926,0.933 36.8%,1.001 45.6%,1.013,1.019 50.8%,1.018 54.4%,1 63.1%,0.995 68%,1.001 85%,1)}
+html,body{height:100%;overflow:hidden}
+body{font-family:"PP Neue Montreal",Helvetica,Arial,sans-serif;font-weight:500;font-size:18px;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;background:var(--warm-off-black);text-transform:uppercase;letter-spacing:-.03em;color:var(--warm-off-white);position:relative;display:flex;align-items:center;justify-content:center}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--warm-off-white);outline-offset:4px}
+
+/* animated noise */
+body::before{content:"";position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:transparent url("https://assets.iceable.com/img/noise-transparent.png") repeat 0 0;background-size:300px 300px;animation:noise .3s steps(5) infinite;opacity:.9;will-change:transform;z-index:100;pointer-events:none}
+@keyframes noise{0%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}20%{transform:translate(-4%,2%)}30%{transform:translate(2%,-4%)}40%{transform:translate(-2%,5%)}50%{transform:translate(-4%,2%)}60%{transform:translate(3%,0)}70%{transform:translate(0,3%)}80%{transform:translate(-3%,0)}90%{transform:translate(2%,2%)}100%{transform:translate(1%,0)}}
+
+/* background image */
+#idle-storm{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55;transition:opacity .45s ease}
+body.preview-active #idle-storm{opacity:0}
+#background-image-container{position:fixed;inset:0;z-index:0;overflow:hidden}
+#background-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.2);transition:transform .8s cubic-bezier(.25,.46,.45,.94);opacity:0}
+
+/* chrome */
+.brand,.count{position:fixed;top:22px;z-index:11;font-size:.8rem}
+.brand{left:16px}.count{right:24px}
+#cap{position:fixed;left:24px;bottom:34px;z-index:11;font-size:.8rem;max-width:22ch;line-height:1.2;mix-blend-mode:difference}
+#toast{position:fixed;top:56px;left:50%;transform:translate(-50%,-12px);z-index:12;font-size:.8rem;text-transform:none;background:var(--warm-off-white);color:var(--warm-off-black);padding:.6em 1.1em;border-radius:100vw;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* layout */
+.container{width:100%;max-width:1000px;height:100%;display:flex;align-items:center;justify-content:center;z-index:10;position:relative}
+.view{display:none;width:100%;max-height:72vh;overflow-y:auto;padding:20px;scrollbar-width:none;-ms-overflow-style:none;position:relative;z-index:10}
+.view::-webkit-scrollbar{display:none}
+.view.on{display:block}
+
+/* list */
+.project-item{position:relative;display:flex;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid rgba(248,245,242,.1);cursor:pointer}
+.project-title,.project-year{font-size:1.8rem;position:relative;z-index:2;mix-blend-mode:exclusion}
+.project-year{text-align:right}
+.project-item::before{content:"";position:absolute;bottom:0;left:0;width:100%;height:0;background:var(--warm-off-white);z-index:1;pointer-events:none;transition:height .2s cubic-bezier(.445,.05,.55,.95)}
+.project-item:hover::before,.project-item:focus-visible::before{height:100%}
+.project-item:not(:hover)::before{transition-duration:.8s}
+
+/* install + about */
+.big{font-size:clamp(2rem,6.5vw,5.2rem);line-height:.98;mix-blend-mode:exclusion}
+.cmd{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(248,245,242,.1);border-bottom:1px solid rgba(248,245,242,.1);color:inherit;font:inherit;text-transform:none;padding:1.3rem 0;margin-top:2rem;cursor:pointer;font-size:clamp(1.3rem,4.4vw,2.8rem);letter-spacing:-.03em;mix-blend-mode:exclusion}
+.cmd:hover{background:var(--warm-off-white);color:var(--warm-off-black);mix-blend-mode:normal;padding-left:1rem}
+.small{font-size:.9rem;line-height:1.35;text-transform:none;max-width:46ch;margin-top:1.1rem;opacity:.75}
+.stats{display:flex;gap:2.2rem;margin-top:1.6rem;font-size:1.1rem;flex-wrap:wrap}
+.stats b{display:block;font-size:2.4rem;font-weight:500;line-height:1}
+.draws{display:flex;gap:1.4rem 2.2rem;flex-wrap:wrap;margin-top:2rem}
+.text-draw{font-size:1.5rem;display:block}
+.text-draw__box{color:#e55050;width:100%;height:.45em;position:relative}
+.text-draw__box-svg{width:100%;height:100%;position:absolute;overflow:visible!important}
+
+/* glass nav dock */
+.dock{position:fixed;left:0;right:0;bottom:22px;display:flex;justify-content:center;z-index:30;pointer-events:none}
+nav{display:flex;position:relative;transform:translate3d(0,0,.01px);opacity:.999;pointer-events:auto;background:hsl(205deg 0% 0% / .1);backdrop-filter:blur(9px) brightness(1.1);border-radius:100vw;padding:.4em;box-shadow:0 4px 20px hsl(205deg 50% 30% / .15),0 4px 10px hsl(205deg 30% 10% / .075),inset 0 -4px 15px 6px hsl(205deg 70% 90% / .2),inset 0 -2px 5px hsl(205deg 70% 90% / .15),inset 0 -1px 1px hsl(205deg 70% 90% / .4),inset 0 10px 15px hsl(205deg 30% 10% / .2),inset 0 1px 2px hsl(205deg 70% 90% / .3)}
+nav:before,nav:after{content:"";inset:0;position:absolute;mask-image:url("https://assets.codepen.io/13471/nnnoise%281%29.png");mask-mode:luminance;mask-repeat:repeat;border-radius:100vw}
+nav:before{mask-size:55%;z-index:1;backdrop-filter:blur(7px) brightness(1.05);background:hsl(205deg 0% 100% / .1)}
+nav:after{mask-size:50%;z-index:2;backdrop-filter:blur(5px) brightness(.95);background:hsl(205deg 0% 20% / .05);box-shadow:inset 0 -4px 15px 5px hsl(205deg 70% 90% / .3),inset 0 -2px 5px hsl(205deg 70% 90% / .15),inset 0 -1px 1px hsl(205deg 70% 90% / .4),inset 0 1px 2px hsl(205deg 70% 90% / .3)}
+nav ul{display:flex;gap:2.4em;list-style:none;padding:0 .6em;position:relative;z-index:3;color:#fff;text-shadow:0 1px 1px hsl(205deg 30% 10% / .2);text-transform:lowercase;font-size:1.1rem}
+nav ul li{padding:.6em 1em;border-radius:100vw;position:relative;transition:all 1.8s var(--linear-ease) .2s,box-shadow .3s ease;cursor:pointer;box-shadow:0 0 .5px 1.5px transparent}
+nav ul li:focus-within:has(:focus-visible){box-shadow:0 0 .5px 1.5px #fff}
+nav ul li a:focus-visible{outline:none}
+nav ul li:after{content:"";position:absolute;inset:0;border-radius:100vw;background:#fff;opacity:0;scale:0;transition:all 2s var(--linear-ease) .2s;z-index:-1}
+nav ul li.active{color:#000;text-shadow:none}
+nav ul li.active:after{opacity:1;scale:1}
+.effect{position:fixed;left:0;top:0;width:0;height:0;opacity:1;pointer-events:none;display:grid;place-items:center;z-index:1}
+.effect.text{color:#fff;z-index:1;transition:color 0s ease;text-transform:lowercase;font-size:1.1rem;text-shadow:none}
+.effect.text.active{color:#000;transition:color 1.8s var(--linear-ease) .2s}
+.effect.text.hidden{opacity:0}
+.effect.filter{filter:blur(7px) contrast(20) blur(0);mix-blend-mode:lighten;position:absolute}
+.effect.filter::before{content:"";position:absolute;inset:-75px;z-index:-2;background:#000}
+.effect.filter::after{content:"";position:absolute;inset:0;background:#fff;scale:0;opacity:0;z-index:-1;border-radius:100vw}
+.effect.active:after{animation:pill 2s var(--linear-ease) .2s both}
+.particle,.point{display:block;opacity:0;width:20px;height:20px;border-radius:100%;transform-origin:center}
+.particle{--time:5s;position:absolute;top:calc(50% - 8px);left:calc(50% - 8px);animation:particle calc(var(--time)) ease 1 -350ms}
+.point{background:var(--color);opacity:1;animation:point calc(var(--time)) ease 1 -350ms}
+@keyframes particle{0%{transform:rotate(0) translate(var(--start-x),var(--start-y));opacity:1;animation-timing-function:cubic-bezier(.55,0,1,.45)}70%{transform:rotate(calc(var(--rotate)*.5)) translate(calc(var(--end-x)*1.2),calc(var(--end-y)*1.2));opacity:1;animation-timing-function:ease}85%{transform:rotate(calc(var(--rotate)*.66)) translate(var(--end-x),var(--end-y));opacity:1}100%{transform:rotate(calc(var(--rotate)*1.2)) translate(calc(var(--end-x)*.5),calc(var(--end-y)*.5));opacity:1}}
+@keyframes point{0%{scale:0;opacity:0;animation-timing-function:cubic-bezier(.55,0,1,.45)}25%{scale:calc(var(--scale)*.25)}38%{opacity:1}65%{scale:var(--scale);opacity:1;animation-timing-function:ease}85%{scale:var(--scale);opacity:1}100%{scale:0;opacity:0}}
+@keyframes pill{to{scale:1;opacity:1}}
+
+@media (max-width:768px){.project-title,.project-year{font-size:1.4rem}#cap{display:none}}
+@media (max-width:480px){.project-item{flex-direction:column;gap:.2rem}.project-year{text-align:left;font-size:1rem!important;opacity:.7}nav ul{gap:.6em}nav ul li{padding:.6em .8em}.brand{font-size:.7rem;max-width:60vw}}
+/* Scramble glyphs occupy the final text's space, so rows never jump. */
+.scramble-text{display:inline-block;position:relative}
+.scramble-source{opacity:1}
+.scramble-text.is-scrambling .scramble-source{opacity:0}
+.scramble-layer{position:absolute;inset:0;display:flex;pointer-events:none}
+.scramble-line{display:block}
+.scramble-glyph{display:inline-block;flex-shrink:0;white-space:pre;text-align:center}
+.scramble-glyph.cursor{color:inherit;opacity:.65}
+.list-hint{display:flex;justify-content:space-between;gap:1rem;font-size:.7rem;letter-spacing:.03em;opacity:.65;margin-bottom:1.1rem}
+body::before{opacity:.18}
+#background-image-container::after{content:"";position:absolute;inset:0;background:rgba(26,25,23,.3);pointer-events:none}
+#background-image{transition:opacity .3s ease,transform .8s cubic-bezier(.25,.46,.45,.94)}
+.view{max-height:min(76vh,calc(100dvh - 175px));scroll-padding:20px}
+.dock{bottom:max(22px,env(safe-area-inset-bottom))}
+nav{z-index:2}
+nav:before,nav:after{pointer-events:none}
+nav ul li{padding:0}
+nav ul li a{display:block;padding:.6em 1em;border-radius:100vw}
+.effect.filter{position:fixed;z-index:3}
+.effect.text{z-index:4}
+.cmd{overflow-wrap:anywhere}
+.project-title{min-width:0}
+.project-year{flex-shrink:0}
+.small a{text-decoration:underline;text-underline-offset:3px}
+/* Keep decorative layers and clickable labels out of native drag/selection. */
+#background-image-container,.text-draw__box{pointer-events:none}
+.brand,.count,.list-hint,.project-item,.dock,.text-draw{-webkit-user-select:none;user-select:none}
+img,a{-webkit-user-drag:none}
+@media (max-width:768px){#cap{display:block;bottom:100px;left:20px;right:20px;max-width:none;font-size:.7rem}}
+@media (max-width:480px){nav ul li{padding:0}nav ul li a{padding:.7em .9em}.list-hint{font-size:.6rem}.view{max-height:calc(100dvh - 250px)}.project-title{font-size:1.35rem}.project-year{font-size:.75rem!important}.project-item{padding:.8rem 0}.brand,.count{top:20px}}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}body::before{will-change:auto}.effect{display:none}}
+</style>
+</head>
+<body>
+
+<canvas id="idle-storm" aria-hidden="true" draggable="false"></canvas>
+<div id="background-image-container" aria-hidden="true"><img id="background-image" crossorigin="anonymous" alt="" draggable="false"></div>
+
+<div class="brand" data-scramble>Nahid’s PowerShell Toolkit</div>
+<div class="count" id="count">10 tools</div>
+<div id="cap"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<main class="container">
+  <section class="view on" id="v-tools" aria-label="Tools"><div class="list-hint"><span>Choose your tool</span><span>Click to copy run command ↗</span></div><div class="projects-container" id="list"></div></section>
+
+  <section class="view" id="v-install" aria-label="Install">
+    <div class="big"><span class="scramble-line" data-scramble>One line.</span><span class="scramble-line" data-scramble>One dashboard.</span></div>
+    <button class="cmd" id="main-cmd" data-copy="irm is.gd/notnahid | iex" aria-label="Copy the install command">irm is.gd/notnahid | iex</button>
+    <p class="small">Click to copy, then paste it into PowerShell. It downloads and runs remote code, so read ultimate.ps1 first if you want to see exactly what it does.</p>
+  </section>
+
+  <section class="view" id="v-about" aria-label="About">
+    <div class="big"><span class="scramble-line" data-scramble>Small tools</span><span class="scramble-line" data-scramble>for small</span><span class="scramble-line" data-scramble>annoyances.</span></div>
+    <p class="small">A grab-bag of standalone PowerShell and Python scripts for Windows. Needs PowerShell 5.1 or later and an internet connection. Shared as is, so review any script before running it.</p>
+    <div class="stats"><div><b id="st-stars">—</b>stars</div><div><b id="st-forks">—</b>forks</div><div><b id="st-tools">10</b>tools</div></div>
+    <div class="draws">
+      <a data-draw-line href="https://github.com/NotNahid/powershell" target="_blank" rel="noopener" class="text-draw"><span>GitHub</span><div data-draw-line-box class="text-draw__box"></div></a>
+      <a data-draw-line href="https://notnahid.rf.gd/" target="_blank" rel="noopener" class="text-draw"><span>Website</span><div data-draw-line-box class="text-draw__box"></div></a>
+      <a data-draw-line href="https://github.com/NotNahid/powershell/blob/main/SECURITY.md" target="_blank" rel="noopener" class="text-draw"><span>Security</span><div data-draw-line-box class="text-draw__box"></div></a>
+    </div>
+    <p class="small">Text scramble inspired by <a href="https://codepen.io/juliangarnier/pen/vEyYdXN" target="_blank" rel="noopener">Julian Garnier</a>. Glass nav adapted from <a href="https://codepen.io/simeydotme/pen/qEBmggz" target="_blank" rel="noopener">Simey</a>. Ambient background inspired by <a href="https://codepen.io/pavlovsk/pen/wBgPvPm" target="_blank" rel="noopener">Pavlovsk’s RadioStorm</a>. Draw-underline by Osmo.</p>
+  </section>
+</main>
+
+<div class="dock">
+  <nav aria-label="Sections">
+    <ul>
+      <li data-view="v-tools"><a href="#tools" aria-controls="v-tools">tools</a></li>
+      <li data-view="v-install"><a href="#install" aria-controls="v-install">install</a></li>
+      <li data-view="v-about"><a href="#about" aria-controls="v-about">about</a></li>
+    </ul>
+  </nav>
+  <span class="effect filter" aria-hidden="true"></span>
+  <span class="effect text active hidden" aria-hidden="true">tools</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
+<script>
+document.addEventListener('dragstart',function(e){
+  if(e.target instanceof Element&&e.target.closest('a,img,.brand,.project-item,.dock,.effect'))e.preventDefault();
+});
+/* Sparse, brief text shimmer, inspired by Julian Garnier's scramble demo.
+   Kept dependency-free: the readable source stays in place for layout and AT. */
+var reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+var scrambleStates=new WeakMap();
+function prepareScramble(el){
+  if(scrambleStates.has(el))return scrambleStates.get(el);
+  var source=document.createElement('span');source.className='scramble-source';
+  source.textContent=el.textContent;el.textContent='';el.appendChild(source);
+  el.classList.add('scramble-text');
+  var state={source:source,frame:0,layer:null,running:false,lastStart:-Infinity};
+  scrambleStates.set(el,state);
+  return state;
+}
+function stopScramble(el){
+  var s=scrambleStates.get(el);if(!s)return;
+  cancelAnimationFrame(s.frame);if(s.layer)s.layer.remove();
+  s.layer=null;s.running=false;el.classList.remove('is-scrambling');
+}
+function scramble(el,duration,delay){
+  var s=prepareScramble(el);
+  if(reducedMotion.matches||s.running||performance.now()-s.lastStart<1200||!el.getClientRects().length)return;
+  s.lastStart=performance.now();
+  var text=s.source.textContent,chars=Array.from(text),node=s.source.firstChild;
+  var layer=document.createElement('span');layer.className='scramble-layer';layer.setAttribute('aria-hidden','true');
+  var origin=el.getBoundingClientRect(),offset=0;
+  var cells=chars.map(function(c){
+    var range=document.createRange();range.setStart(node,offset);offset+=c.length;range.setEnd(node,offset);
+    var rect=range.getBoundingClientRect(),cell=document.createElement('span');
+    cell.className='scramble-glyph';cell.style.position='absolute';
+    cell.style.left=(rect.left-origin.left)+'px';cell.style.width=rect.width+'px';
+    cell.textContent=c;layer.appendChild(cell);return cell;
+  });
+  s.layer=layer;s.running=true;el.appendChild(layer);el.classList.add('is-scrambling');
+  var start=performance.now()+(delay||0),last=0,ms=Math.min(duration||320,320);
+  var selected=chars.map(function(c,i){return !/\s/.test(c)?i:-1}).filter(function(i){return i>=0});
+  selected=selected.filter(function(i,n){return n%7===2||selected.length<3&&n===0});
+  function tick(now){
+    if(reducedMotion.matches||!el.isConnected||!el.getClientRects().length){stopScramble(el);return}
+    var elapsed=now-start;
+    if(elapsed>=ms){stopScramble(el);return}
+    if(now-last>65){
+      last=now;var progress=Math.max(0,elapsed/ms),middle=(chars.length-1)/2;
+      cells.forEach(function(cell,i){
+        if(selected.indexOf(i)<0)return;
+        var arrival=Math.abs(i-middle)/Math.max(1,middle)*.64;
+        var phase=(progress-arrival)/.25;
+        var active=elapsed>=0&&phase>=0&&phase<1;
+        cell.className='scramble-glyph'+(active?' cursor':'');
+        cell.textContent=active?'_':chars[i];
+      });
+    }
+    s.frame=requestAnimationFrame(tick);
+  }
+  s.frame=requestAnimationFrame(tick);
+}
+function scrambleView(view){
+  view.querySelectorAll('[data-scramble]').forEach(function(el,i){scramble(el,720,i*85)});
+}
+document.querySelectorAll('[data-scramble]').forEach(function(el){
+  prepareScramble(el);el.addEventListener('mouseenter',function(){scramble(el,550)});
+});
+reducedMotion.addEventListener('change',function(){
+  if(reducedMotion.matches)document.querySelectorAll('.is-scrambling').forEach(stopScramble);
+});
+/* ---------- data: live from the repo, with a built-in fallback ---------- */
+var RAW="https://raw.githubusercontent.com/NotNahid/powershell/main/";
+function f(n){return RAW+encodeURIComponent(n)}
+var LOCAL=[
+ {name:"Ghost Typer",link:f("type-pro.ps1"),desc:"Auto-types text anywhere on screen",cat:"Automation"},
+ {name:"Auto Clicker",link:f("Auto Clicker.ps1"),desc:"Clicks on repeat, hands free",cat:"Automation"},
+ {name:"File Organizer",link:f("File Organizer.ps1"),desc:"Sorts messy folders by type or date",cat:"Files"},
+ {name:"Rename Tool",link:f("Rename Tool.ps1"),desc:"Bulk rename files in one pass",cat:"Files"},
+ {name:"Network Speed Monitor",link:f("Network Speed Monitor.ps1"),desc:"Watch your connection speed live",cat:"Network"},
+ {name:"FFmpeg With GUI",link:f("FFmpeg With GUI.ps1"),desc:"Edit video and audio without a terminal",cat:"Editing"},
+ {name:"Quick Tools in Tray",link:f("Quick Tools in System Trey.ps1"),desc:"Small utilities one click from your tray",cat:"Productivity"},
+ {name:"Live Wallpaper",link:f("live_wallpaper.ps1"),desc:"Animated desktop wallpaper, powered by Python",cat:"Fun"},
+ {name:"Portfolio",link:f("Portfolio.ps1"),desc:"A desktop portfolio with About, Projects and Contact",cat:"Personal"},
+ {name:"Chris Titus Utility",link:"https://christitus.com/win",desc:"Windows tweaks and installs, by Chris Titus Tech",cat:"Third party"}
+];
+var IMGS=["7d47d4e2-0eff-4e2f-9734-9d24a8ba067e","5eee2d2d-3d4d-4ae5-96d4-cdbae70a2387","def30e8a-34b2-48b1-86e1-07ec5c28f225","44d7cb23-6759-49e4-9dc1-acf771b3a0d1","7712fe42-42ca-4fc5-9590-c89f2db99978","cbee1ec5-01b6-4ffe-9f34-7da7980454cf","2e91a9d1-db85-4499-ad37-6222a6fea23b","ff2ac3d3-fa94-4811-89f6-0d008b27e439","c39a4043-f489-4406-8018-a103a3f89802","e5e399f2-4050-463b-a781-4f5a1615f28e"].map(function(i){return "https://cdn.cosmos.so/"+i+"?format=jpeg"});
+var tools=LOCAL.slice();
+
+function key(l){try{return decodeURIComponent(String(l).split("/").pop()).toLowerCase()}catch(e){return String(l)}}
+function merge(live){
+  return live.map(function(t){
+    var m=LOCAL.filter(function(l){return key(l.link)===key(t.Link)})[0];
+    return m||{name:t.Name,link:t.Link,desc:t.Desc||"",cat:t.Category||"Tool"};
+  });
+}
+function loadLive(){
+  function catalog(url){return fetch(url).then(function(r){if(!r.ok)throw new Error('Catalog unavailable');return r.json()})}
+  catalog('./Main%20Links%20File%20Json/utilities.json').catch(function(){return catalog(RAW+"Main%20Links%20File%20Json/utilities.json")}).then(function(d){
+    if(Array.isArray(d)&&d.length){
+      var next=merge(d);if(JSON.stringify(next)!==JSON.stringify(tools)){tools=next;render(performance.now()<1000)}
+    }
+  }).catch(function(){});
+  fetch("https://api.github.com/repos/NotNahid/powershell").then(function(r){return r.json()}).then(function(d){
+    if(d&&typeof d.stargazers_count==="number"){
+      document.getElementById("st-stars").textContent=d.stargazers_count;
+      document.getElementById("st-forks").textContent=d.forks_count;
+    }
+  }).catch(function(){});
+}
+
+/* ---------- RadioStorm idle background (port of Pavlovsk's pen) ----------
+   Wrapped in its own scope so its globals (settings, G, noise, ...) can't
+   clash with the page. Pauses while a tool preview is shown, the tab is
+   hidden, or reduced motion is on. */
+function initIdleStorm(){
+  var canvas=document.getElementById('idle-storm');
+  var ctx;
+  try{ctx=canvas.getContext('2d')}catch(e){}
+  if(!ctx)return {setPreview:function(){}};
+
+  /* Small seeded 2D simplex noise (replaces the external noise.js dependency). */
+  const noise=(function(){
+    const grad3=[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[1,0],[-1,0],[0,1],[0,-1],[0,1],[0,-1]];
+    const p=[];for(let i=0;i<256;i++)p[i]=i;
+    for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=p[i];p[i]=p[j];p[j]=t}
+    const perm=new Array(512),gradP=new Array(512);
+    for(let i=0;i<512;i++){perm[i]=p[i&255];gradP[i]=grad3[perm[i]%12]}
+    const F2=.5*(Math.sqrt(3)-1),G2=(3-Math.sqrt(3))/6;
+    return {simplex2:function(xin,yin){
+      let n0,n1,n2;
+      const s=(xin+yin)*F2;
+      let i=Math.floor(xin+s),j=Math.floor(yin+s);
+      const t=(i+j)*G2;
+      const x0=xin-i+t,y0=yin-j+t;
+      let i1,j1;
+      if(x0>y0){i1=1;j1=0}else{i1=0;j1=1}
+      const x1=x0-i1+G2,y1=y0-j1+G2,x2=x0-1+2*G2,y2=y0-1+2*G2;
+      i&=255;j&=255;
+      const g0=gradP[i+perm[j]],g1=gradP[i+i1+perm[j+j1]],g2=gradP[i+1+perm[j+1]];
+      let t0=.5-x0*x0-y0*y0;
+      if(t0<0)n0=0;else{t0*=t0;n0=t0*t0*(g0[0]*x0+g0[1]*y0)}
+      let t1=.5-x1*x1-y1*y1;
+      if(t1<0)n1=0;else{t1*=t1;n1=t1*t1*(g1[0]*x1+g1[1]*y1)}
+      let t2=.5-x2*x2-y2*y2;
+      if(t2<0)n2=0;else{t2*=t2;n2=t2*t2*(g2[0]*x2+g2[1]*y2)}
+      return 70*(n0+n1+n2);
+    }};
+  })();
+
+  /* state (declared before settings, whose getters read glowState) */
+  let strikeState=[];
+  let winnerSets=[];
+  let glowState=1;
+  let endState=0;
+  let drawingState=0;
+  let stormParticles=[];
+  let strikeInterval;
+  let raf=0;
+  let preview=false;
+  let noiseCache=[];           // simplex values never change per node, so compute once
+  let nodesRaw=[],nodesComputed=[],nodesKey='';
+  const S=.6;                  // render scale: soft, cheap, and fine for a subtle backdrop
+
+  const {
+    min,max,abs,sqrt,pow,
+    random,round,ceil,floor,
+    sin,cos,PI:π
+  }=Math;
+  const rad=(deg)=>deg*π/180;
+  const clamp=(minV,maxV,value)=>min(maxV,max(minV,value));
+  const calcProgress=(ratio)=>clamp(0,1,ratio);
+  const calcDistance=(a,b)=>sqrt(pow(abs(a.x-b.x),2)+pow(abs(a.y-b.y),2));
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const G={
+    get frame(){return this._frame||0},
+    set frame(v){this._frame=v},
+    get width(){return window.innerWidth},
+    get height(){return window.innerHeight},
+    set pointer(pos){this._pointer={x:pos.x,y:pos.y}},
+    get pointer(){
+      return this._pointer||{x:this.width*1/3,y:this.height*1/3};
+    },
+    set click(pos){this._click={x:pos.x,y:pos.y}},
+    get click(){
+      if(!this._click){
+        this._click={
+          x:this.width/5+random()*(this.width*3/5),
+          y:random()*this.height/3
+        };
+      }
+      return this._click;
+    }
+  };
+
+  const settings={
+    interval:6000, // or false
+    nodeMap:true,
+    nodeStyle:'rect', // try 'arc' sometime
+    stepSpeed:0.3,
+
+    get glowStyle(){
+      return {
+        flashMultiplier:this.nodeSize*6,
+        flashUntil:0.05,
+        flashEase:1/3,
+        finalEase:1/20
+      };
+    },
+    get stormStyle(){
+      return {
+        minWindAngle:50,
+        maxWindAngle:70,
+        windVariation:15,
+        windSpeedFactor:1/25,
+        windGlowSpeedFactor:1/max(1,(glowState*3)),
+        minParticles:150,
+        maxParticles:250,
+        minParticleLength:G.height/25,
+        maxParticleLength:G.height/7,
+        maxParticleWidth:G.width/500,
+        particleColor:{
+          h:280+(140*glowState),
+          s:100,
+          l:40
+        }
+      };
+    },
+    get strokeStyle(){
+      return {
+        width:this.nodeSize*4,
+        cap:'round'
+      };
+    },
+    get limits(){
+      return {
+        strikeSetLimit:35,
+        firstSetMaxStrikes:2,
+        otherSetMaxStrikes:2,
+        dieOff:.9,
+        winChance:.15,
+        minWinners:ceil(random()*4),
+        stopY:G.height-G.height/100
+      };
+    },
+    get nodeSize(){return max(3,G.width/1000)},
+    get nodeGapConstant(){return 11},
+    get nodeGap(){return this.nodeSize*this.nodeGapConstant},
+    get nodeCount(){
+      return floor(
+        (G.width*G.height)/
+        (this.nodeSize*this.nodeGap)/
+        this.nodeGapConstant
+      );
+    },
+    get sizeMultipliers(){
+      return {
+        y:G.width/25,
+        source:G.width/25,
+        noise:G.width/70
+      };
+    },
+    get source(){
+      return {
+        pos:G.pointer,
+        treshold:this.nodeSize*35,
+        exponent:1
+      };
+    }
+  };
+
+  let stormAngle=settings.stormStyle.minWindAngle;
+
+  const fullSize=(el)=>{
+    el.width=Math.round(window.innerWidth*S);
+    el.height=Math.round(window.innerHeight*S);
+    ctx.setTransform(S,0,0,S,0,0);
+  };
+
+  /* Recompute the node field only when the pointer has moved a bit or the
+     strike was reset, instead of every frame. */
+  const refreshNodes=()=>{
+    const p=settings.source.pos;
+    const key=((p.x/12)|0)+','+((p.y/12)|0)+','+G.width+','+G.height;
+    if(key===nodesKey&&nodesRaw.length)return;
+    nodesKey=key;
+    nodesRaw=makeArray(settings.nodeCount);
+    nodesComputed=nodesRaw.map(computeNode(p));
+  };
+
+  const makeArray=(length)=>[...Array(length).keys()].map((_,i)=>i);
+
+  function luckySelect(array,chance,minItems){
+    if(minItems>=array.length)return [...array];
+    const weighted=array.map(item=>({item,luck:random(),passed:random()<chance}));
+    const passedItems=weighted.filter(w=>w.passed).map(w=>w.item);
+    if(passedItems.length>=minItems)return passedItems;
+    const failedItems=weighted
+      .filter(w=>!w.passed)
+      .sort((a,b)=>a.luck-b.luck)
+      .map(w=>w.item);
+    const needed=minItems-passedItems.length;
+    return [...passedItems,...failedItems.slice(0,needed)];
+  }
+
+  const calcNodePos=(nodeIndex)=>{
+    const size=settings.nodeSize;
+    const gap=settings.nodeGap;
+    const x=nodeIndex*(size+gap)%G.width;
+    const y=floor((nodeIndex*(size+gap))/G.width)*gap;
+    return {x:x,y:y};
+  };
+
+  const computeNode=(sourceNode)=>(node)=>{
+    const {nodeSize,sizeMultipliers,source}=settings;
+    const pos=node.pos||calcNodePos(node);
+    const yProgress=node.yProgress||calcProgress(pos.y/G.height);
+    const sourceDistance=calcDistance(sourceNode,pos);
+    const sourceProgress=calcProgress(source.treshold/sourceDistance);
+    const sizeFactorY=sizeMultipliers.y*yProgress;
+    const sizeFactorSource=pow(sourceProgress,source.exponent)*sizeMultipliers.source;
+    const idx=typeof node==='number'?node:node.index;
+    if(noiseCache[idx]===undefined)noiseCache[idx]=noise.simplex2(pos.x,pos.y);
+    const sizeFactorNoise=noiseCache[idx]*sizeMultipliers.noise;
+    return {
+      index:node.index||node,
+      targeted:node.targeted||false,
+      x:pos.x,
+      y:pos.y,
+      size:sourceProgress*(nodeSize+sizeFactorY+sizeFactorSource+sizeFactorNoise),
+      sourceProgress,
+      yProgress
+    };
+  };
+
+  const computeStrikeState=(rawNodes,computedNodes)=>{
+    const {
+      strikeSetLimit,
+      firstSetMaxStrikes,
+      otherSetMaxStrikes,
+      dieOff,
+      stopY
+    }=settings.limits;
+
+    const result=[];
+
+    const firstSet=[...computedNodes]
+      .sort((a,b)=>b.size-a.size)
+      .slice(0,ceil(random()*firstSetMaxStrikes))
+      .map(target=>({progress:0,from:settings.source.pos,to:target}));
+
+    firstSet.forEach(strike=>{computedNodes[strike.to.index].targeted=true});
+    result.push(firstSet);
+
+    let limit=strikeSetLimit;
+    while(limit-->0){
+      const newSet=[];
+      const lastSet=result[result.length-1];
+      const sources=lastSet.map(s=>s.to);
+      if(sources.some(s=>s.y>=stopY))break;
+      sources.forEach(source=>{
+        const strikes=rawNodes
+          .map((node,i)=>({
+            ...computeNode(source)(node),
+            targeted:computedNodes[i].targeted
+          }))
+          .filter(node=>!node.targeted)
+          .filter(node=>node.size>source.size*dieOff)
+          .sort((a,b)=>b.size-a.size)
+          .slice(0,ceil(random()*otherSetMaxStrikes))
+          .map(newTarget=>({progress:0,from:source,to:newTarget}));
+        strikes.forEach(strike=>{computedNodes[strike.to.index].targeted=true});
+        newSet.push(...strikes);
+      });
+      result.push(newSet);
+    }
+    return result;
+  };
+
+  const makeStormParticles=(amount)=>{
+    const {minParticleLength,maxParticleLength,windSpeedFactor}=settings.stormStyle;
+    return makeArray(round(random()*amount)).map(()=>{
+      const length=max(minParticleLength,random()*maxParticleLength);
+      return {
+        x:random()*G.width,
+        y:random()*G.height,
+        length,
+        speed:length*windSpeedFactor
+      };
+    });
+  };
+
+  const prepareEndStates=()=>{
+    const {flashUntil,flashEase,finalEase}=settings.glowStyle;
+    strikeState=winnerSets;
+    if(glowState>=flashUntil){
+      glowState-=glowState*flashEase;
+    }else{
+      glowState-=glowState*finalEase;
+    }
+    endState+=(1-endState)/200;
+  };
+
+  const prepareWinnerSets=(endSet)=>{
+    const {winChance,minWinners,stopY,strikeSetLimit}=settings.limits;
+    const result=[];
+    const finishedStrikes=endSet.filter(strike=>strike.to.y>=stopY);
+    const luckyStrikes=luckySelect(finishedStrikes,winChance,minWinners);
+    result.push(luckyStrikes);
+
+    let limit=strikeSetLimit;
+    while(limit-->0){
+      const strikeSet=strikeState.slice(0,-1)[limit];
+      if(!strikeSet)continue;
+      let winningStrikes=[];
+      for(let i=0;i<strikeSet.length;i++){
+        const candidateStrike=strikeSet[i];
+        for(let j=0;j<result[0].length;j++){
+          const alreadyWonStrike=result[0][j];
+          if(candidateStrike.to.index===alreadyWonStrike.from.index){
+            winningStrikes.push(candidateStrike);
+          }
+        }
+      }
+      result.unshift(winningStrikes);
+    }
+    return result;
+  };
+
+  /* No opaque fill: the site's warm off-black shows through. A faint red wash
+     marks the moment a strike lands. */
+  const drawBackground=()=>{
+    ctx.clearRect(0,0,G.width,G.height);
+    if(endState>0&&glowState>.02){
+      ctx.fillStyle=`rgba(229, 80, 80, ${min(.07,glowState*.07)})`;
+      ctx.fillRect(0,0,G.width,G.height);
+    }
+  };
+
+  const drawNodeMap=(nodes)=>{
+    /* Warm off-white at rest, warming toward the accent red while a strike runs.
+       One fillStyle per frame, alpha per node, and invisible nodes are skipped. */
+    ctx.fillStyle=`hsl(${30-30*drawingState}, ${25+50*drawingState}%, ${92-30*drawingState}%)`;
+    const jx=(drawingState*G.frame%12)/3;
+    const jy=(drawingState*G.frame%24)/3;
+    for(let k=0;k<nodes.length;k++){
+      const node=nodes[k];
+      const visualWidth=node.size+drawingState*node.size/8;
+      if(visualWidth<.5)continue;
+      const visualHeight=node.size*4+drawingState*node.size/2;
+      ctx.globalAlpha=.06+.3*node.sourceProgress;
+      if(settings.nodeStyle==='arc'){
+        ctx.beginPath();
+        ctx.arc(node.x-visualWidth/2+jx,node.y-visualHeight/2+jy,max(0,visualWidth/2),0,2*π);
+        ctx.fill();
+      }else{
+        ctx.fillRect(node.x-visualWidth/2+jx,node.y-visualHeight/2+jy,visualWidth,visualHeight);
+      }
+    }
+    ctx.globalAlpha=1;
+  };
+
+  const drawStormParticles=(particles)=>{
+    const {windVariation,windGlowSpeedFactor,maxParticleWidth,particleColor}=settings.stormStyle;
+    /* Single path and single stroke for all streaks; cool blue that warms with the flash. */
+    ctx.lineCap='butt';
+    ctx.lineWidth=maxParticleWidth;
+    ctx.strokeStyle=`hsla(${max(25,215-190*glowState)}, 80%, 72%, .3)`;
+    ctx.beginPath();
+    particles.forEach(({x,y,length,speed},i)=>{
+      const angle=rad(stormAngle+(x/G.width*windVariation)-(y/G.height*windVariation*2));
+      const dirX=sin(angle);
+      const dirY=cos(angle);
+      ctx.moveTo(x,y);
+      ctx.lineTo(x+length*dirX,y+length*dirY);
+      particles[i].x+=(length*dirX)*speed*windGlowSpeedFactor;
+      particles[i].y+=(length*dirY)*speed*windGlowSpeedFactor;
+      if(particles[i].x>=G.width){
+        particles[i].x=-length;
+        particles[i].y=G.height/-2+random()*G.height*2;
+      }
+      if(particles[i].y>=G.height){
+        particles[i].y=random()*-G.height;
+      }
+    });
+    ctx.stroke();
+  };
+
+  const drawStrikes=()=>{
+    ctx.lineCap=settings.strokeStyle.cap;
+    const endGlow=endState>0?(glowState*settings.glowStyle.flashMultiplier):1;
+    const endDisplacement=endState*25;
+
+    strikeState.forEach((strikeSet,i)=>{
+      /* accent red fading toward the site's gold as the bolt branches */
+      ctx.strokeStyle=`hsla(${45*min(1,i/30)}, 78%, 62%, .5)`;
+      const lineWidth=endGlow*(0.5+settings.strokeStyle.width*((i+1)/10));
+      ctx.lineWidth=lineWidth;
+      strikeSet.forEach(strike=>{
+        if(strike.progress<1)return;
+        ctx.beginPath();
+        ctx.moveTo(strike.from.x-lineWidth,strike.from.y+endDisplacement);
+        ctx.lineTo(strike.to.x-lineWidth,strike.to.y+endDisplacement);
+        ctx.stroke();
+      });
+      ctx.strokeStyle='rgba(248, 245, 242, .85)';
+      ctx.lineWidth=endGlow*(1+settings.strokeStyle.width*((i+1)/12));
+      strikeSet.forEach(strike=>{
+        if(strike.progress<1)return;
+        ctx.beginPath();
+        ctx.moveTo(strike.from.x,strike.from.y+endDisplacement);
+        ctx.lineTo(strike.to.x,strike.to.y+endDisplacement);
+        ctx.stroke();
+      });
+    });
+  };
+
+  const drawActiveStrikes=(activeStrikes)=>{
+    activeStrikes.forEach(strike=>{
+      const diffX=strike.to.x-strike.from.x;
+      const diffY=strike.to.y-strike.from.y;
+      const x=diffX*strike.progress;
+      const y=diffY*strike.progress;
+      ctx.beginPath();
+      ctx.moveTo(strike.from.x,strike.from.y);
+      ctx.lineTo(strike.from.x+x,strike.from.y+y);
+      ctx.stroke();
+      strike.progress+=settings.stepSpeed;
+    });
+  };
+
+  const draw=()=>{
+    G.frame++;
+
+    refreshNodes();
+    const rawNodes=nodesRaw;
+    const computedNodes=nodesComputed;
+
+    if(!stormParticles.length){
+      const {minParticles,maxParticles}=settings.stormStyle;
+      stormParticles=makeStormParticles(minParticles+ceil(random()*(maxParticles-minParticles)));
+    }
+
+    if(!strikeState.length){
+      strikeState=computeStrikeState(rawNodes,computedNodes);
+    }
+
+    const activeStrikes=strikeState.find(set=>set.some(strike=>strike.progress<1));
+    const endSet=strikeState.find(set=>set.some(strike=>strike.to.y>=settings.limits.stopY));
+
+    if(!activeStrikes&&endSet)prepareEndStates();
+    if(endSet&&!winnerSets.length)winnerSets=prepareWinnerSets(endSet);
+
+    drawBackground();
+    if(settings.nodeMap)drawNodeMap(computedNodes);
+    drawStrikes();
+
+    if(activeStrikes){
+      drawingState=min(1,drawingState+max(0.01,drawingState/5));
+      drawActiveStrikes(activeStrikes);
+    }else{
+      drawingState-=drawingState/10;
+    }
+
+    const {minWindAngle,maxWindAngle}=settings.stormStyle;
+    stormAngle+=noise.simplex2(G.frame/300,0);
+    stormAngle=clamp(minWindAngle,maxWindAngle,stormAngle);
+    drawStormParticles(stormParticles);
+  };
+
+  /* loop control: only run while idle and visible */
+  const allowed=()=>!preview&&!document.hidden&&!reduced.matches;
+  let lastT=0;
+  const loop=(now)=>{
+    raf=0;
+    if(!allowed())return;
+    raf=requestAnimationFrame(loop);
+    if(now-lastT<32)return; // cap at ~30fps
+    lastT=now;
+    draw();
+  };
+  const sync=()=>{
+    if(allowed()){
+      if(!raf)raf=requestAnimationFrame(loop);
+    }else{
+      cancelAnimationFrame(raf);raf=0;
+      if(reduced.matches&&!preview){draw()} // single still frame
+    }
+  };
+
+  const resetStrike=()=>{
+    strikeState=[];
+    winnerSets=[];
+    glowState=1;
+    endState=0;
+    drawingState=0;
+    nodesKey=''; // clears the "targeted" flags for the next strike
+  };
+  const startInterval=()=>{
+    if(!settings.interval)return;
+    clearInterval(strikeInterval);
+    strikeInterval=setInterval(()=>{if(allowed())resetStrike()},settings.interval);
+  };
+
+  window.addEventListener('resize',()=>{fullSize(canvas);noiseCache=[];nodesKey=''},{passive:true});
+  window.addEventListener('pointermove',(event)=>{
+    G.pointer={x:event.clientX,y:event.clientY-event.clientY/3};
+  },{passive:true});
+  window.addEventListener('click',(event)=>{
+    G.click={x:event.clientX,y:event.clientY};
+    if(!allowed())return;
+    resetStrike();
+    startInterval();
+  },{passive:true});
+  document.addEventListener('visibilitychange',sync);
+  reduced.addEventListener('change',sync);
+
+  fullSize(canvas);
+  startInterval();
+  sync();
+
+  return {setPreview:function(active){
+    document.body.classList.toggle('preview-active',active);
+    if(preview===active)return;
+    preview=active;sync();
+  }};
+}
+var idleStorm=initIdleStorm();
+
+/* ---------- list ---------- */
+var bg=document.getElementById("background-image"),cap=document.getElementById("cap"),list=document.getElementById("list"),toastEl=document.getElementById("toast"),tt;
+function hidePreview(){bg.style.opacity='0';cap.textContent='';idleStorm.setPreview(false)}
+function toast(m){toastEl.textContent=m;toastEl.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){toastEl.classList.remove("on")},2200)}
+function copy(t,msg){
+  function ok(){toast(msg||"Copied")}
+  function fallback(){
+    var focused=document.activeElement,a=document.createElement('textarea');a.value=t;
+    a.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(a);a.select();
+    var copied=false;try{copied=document.execCommand('copy')}catch(e){}a.remove();
+    if(focused)focused.focus({preventScroll:true});
+    if(copied)ok();else toast('Could not copy. Please allow clipboard access and try again.');
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fallback)}
+  else fallback();
+}
+function show(i){
+  idleStorm.setPreview(true);
+  bg.style.transition="none";bg.style.transform="scale(1.2)";
+  bg.src=IMGS[i%IMGS.length];bg.style.opacity="1";
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    bg.style.transition="transform .8s cubic-bezier(.25,.46,.45,.94)";bg.style.transform="scale(1)";
+  })});
+  cap.textContent=tools[i].desc;
+}
+function render(animate){
+  list.querySelectorAll('.scramble-text').forEach(stopScramble);
+  list.innerHTML="";
+  tools.forEach(function(t,i){
+    var el=document.createElement("div");
+    el.className="project-item";el.tabIndex=0;el.setAttribute("role","button");
+    el.setAttribute("aria-label","Copy run command for "+t.name);
+    var a=document.createElement("div");a.className="project-title";a.textContent=t.name;prepareScramble(a);
+    var b=document.createElement("div");b.className="project-year";b.textContent=t.cat;
+    el.appendChild(a);el.appendChild(b);
+    el.addEventListener("mouseenter",function(){show(i);scramble(a,550)});
+    el.addEventListener("focus",function(){show(i);scramble(a,550)});
+    el.addEventListener("blur",function(){if(!list.matches(':hover'))hidePreview()});
+    function run(){show(i);copy('irm "'+t.link+'" | iex',"Copied run command for "+t.name)}
+    el.addEventListener("click",run);
+    el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();run()}});
+    list.appendChild(el);
+    if(animate!==false&&!reducedMotion.matches){
+      el.animate([{opacity:0,transform:'translateY(20px)'},{opacity:1,transform:'translateY(0)'}],{duration:800,delay:i*60,fill:'backwards',easing:'ease'});
+      scramble(a,720,i*60+150);
+    }
+  });
+  document.getElementById("count").textContent=tools.length+" tools";
+  document.getElementById("st-tools").textContent=tools.length;
+}
+list.addEventListener("mouseleave",hidePreview);
+document.getElementById("main-cmd").addEventListener("click",function(){copy(this.dataset.copy,"Copied install command")});
+
+/* ---------- glass gooey nav (Simey) ---------- */
+var nav=document.querySelector("nav"),effectEl=document.querySelector(".effect.filter"),textEl=document.querySelector(".effect.text"),particleTimer,textTimer,particleFrame;
+var animationTime=600,pCount=15,timeVariance=300,colors=[1,2,3,1,2,3,1,4];
+function noise(n){n=n||1;return n/2-Math.random()*n}
+function getXY(d,i,total){var a=((360+noise(8))/total*i)*Math.PI/180;return [d*Math.cos(a),d*Math.sin(a)]}
+function createParticle(i,t,d,r){
+  var rotate=noise(r/10);
+  return {start:getXY(d[0],pCount-i,pCount),end:getXY(d[1]+noise(7),pCount-i,pCount),time:t,scale:1+noise(.2),color:colors[Math.floor(Math.random()*colors.length)],rotate:rotate>0?(rotate+r/20)*10:(rotate-r/20)*10};
+}
+function makeParticles(el){
+  clearTimeout(particleTimer);cancelAnimationFrame(particleFrame);
+  el.classList.remove('active');el.querySelectorAll('.particle').forEach(function(p){p.remove()});
+  if(reducedMotion.matches)return;
+  var d=[90,10],r=100;
+  el.style.setProperty("--time",(animationTime*2+timeVariance)+"ms");
+  particleTimer=setTimeout(function(){
+  for(var i=0;i<pCount;i++){(function(i){
+    var t=animationTime*2+noise(timeVariance*2),p=createParticle(i,t,d,r);
+      var pa=document.createElement("span"),pt=document.createElement("span");
+      pa.classList.add("particle");pt.classList.add("point");
+      pa.style.cssText="--start-x:"+p.start[0]+"px;--start-y:"+p.start[1]+"px;--end-x:"+p.end[0]+"px;--end-y:"+p.end[1]+"px;--time:"+p.time+"ms;--scale:"+p.scale+";--color:var(--color-"+p.color+",white);--rotate:"+p.rotate+"deg;";
+      pa.appendChild(pt);el.appendChild(pa);
+      setTimeout(function(){if(pa.parentNode)pa.parentNode.removeChild(pa)},t);
+  })(i)}
+  particleFrame=requestAnimationFrame(function(){el.classList.add('active')});
+  },30);
+}
+function place(el){
+  var p=el.getBoundingClientRect(),s={left:p.x+"px",top:p.y+"px",width:p.width+"px",height:p.height+"px"};
+  Object.assign(effectEl.style,s);Object.assign(textEl.style,s);
+  textEl.classList.remove("hidden");textEl.innerText=el.innerText;
+}
+function setView(id){
+  document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("on",v.id===id)});
+  if(id!=="v-tools")hidePreview();
+  var active=document.getElementById(id);
+  if(id==='v-tools')list.querySelectorAll('.project-title').forEach(function(el,i){scramble(el,650,i*45)});
+  else scrambleView(active);
+}
+function activate(el){
+  place(el);
+  if(!el.classList.contains("active")){
+    nav.querySelectorAll("li").forEach(function(l){l.classList.remove("active");l.querySelector('a').removeAttribute('aria-current')});
+    effectEl.querySelectorAll(".particle").forEach(function(p){effectEl.removeChild(p)});
+    el.classList.add("active");textEl.classList.remove("active");
+    el.querySelector('a').setAttribute('aria-current','page');
+    clearTimeout(textTimer);textTimer=setTimeout(function(){textEl.classList.add("active")},100);
+    makeParticles(effectEl);
+    setView(el.dataset.view);
+    history.replaceState(null,'',el.querySelector('a').getAttribute('href'));
+  }
+}
+nav.querySelectorAll("li").forEach(function(li){
+  var a=li.querySelector("a");
+  a.addEventListener("click",function(e){e.preventDefault()});
+  li.addEventListener("click",function(){activate(li)});
+  a.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();activate(li)}});
+});
+new ResizeObserver(function(){var a=nav.querySelector("li.active");if(a)place(a)}).observe(document.body);
+window.addEventListener('resize',function(){var a=nav.querySelector('li.active');if(a)place(a)});
+window.addEventListener('hashchange',function(){var id='v-'+location.hash.slice(1);var li=Array.from(nav.querySelectorAll('li')).find(function(l){return l.dataset.view===id});if(li)activate(li)});
+
+/* ---------- Osmo draw random underline ---------- */
+function initDraw(){
+  if(!window.gsap||!window.DrawSVGPlugin)return;
+  gsap.registerPlugin(DrawSVGPlugin);
+  var W='<svg width="310" height="40" viewBox="0 0 310 40" fill="none" xmlns="http://www.w3.org/2000/svg">';
+  var v=[
+   W+'<path d="M5 20.9999C26.7762 16.2245 49.5532 11.5572 71.7979 14.6666C84.9553 16.5057 97.0392 21.8432 109.987 24.3888C116.413 25.6523 123.012 25.5143 129.042 22.6388C135.981 19.3303 142.586 15.1422 150.092 13.3333C156.799 11.7168 161.702 14.6225 167.887 16.8333C181.562 21.7212 194.975 22.6234 209.252 21.3888C224.678 20.0548 239.912 17.991 255.42 18.3055C272.027 18.6422 288.409 18.867 305 17.9999" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>',
+   W+'<path d="M4.99805 20.9998C65.6267 17.4649 126.268 13.845 187.208 12.8887C226.483 12.2723 265.751 13.2796 304.998 13.9998" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>',
+   W+'<path d="M5 29.8857C52.3147 26.9322 99.4329 21.6611 146.503 17.1765C151.753 16.6763 157.115 15.9505 162.415 15.6551C163.28 15.6069 165.074 15.4123 164.383 16.4275C161.704 20.3627 157.134 23.7551 153.95 27.4983C153.209 28.3702 148.194 33.4751 150.669 34.6605C153.638 36.0819 163.621 32.6063 165.039 32.2029C178.55 28.3608 191.49 23.5968 204.869 19.5404C231.903 11.3436 259.347 5.83254 288.793 5.12258C294.094 4.99476 299.722 4.82265 305 5.45025" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>'
+  ];
+  var next=Math.floor(Math.random()*v.length);
+  document.querySelectorAll("[data-draw-line]").forEach(function(c){
+    var box=c.querySelector("[data-draw-line-box]"),inT=null,outT=null;
+    c.addEventListener("mouseenter",function(){
+      if(inT&&inT.isActive())return;
+      if(outT&&outT.isActive())outT.kill();
+      box.innerHTML=v[next];
+      var s=box.querySelector("svg");s.setAttribute("class","text-draw__box-svg");s.setAttribute("preserveAspectRatio","none");s.setAttribute("width","100%");
+      var p=s.querySelector("path");gsap.set(p,{drawSVG:"0%"});
+      inT=gsap.to(p,{duration:.5,drawSVG:"100%",ease:"power2.inOut",onComplete:function(){inT=null}});
+      next=(next+1)%v.length;
+    });
+    c.addEventListener("mouseleave",function(){
+      var p=box.querySelector("path");if(!p)return;
+      function out(){if(outT&&outT.isActive())return;outT=gsap.to(p,{duration:.5,drawSVG:"100% 100%",ease:"power2.inOut",onComplete:function(){outT=null;box.innerHTML=""}})}
+      if(inT&&inT.isActive())inT.eventCallback("onComplete",out);else out();
+    });
+  });
+}
+
+render();loadLive();initDraw();scramble(document.querySelector('.brand'),750,150);
+var initial=Array.from(nav.querySelectorAll('li')).find(function(li){return '#'+li.dataset.view.slice(2)===location.hash})||nav.querySelector('li');
+setTimeout(function(){activate(initial)},200);
+document.fonts.ready.then(function(){var a=nav.querySelector('li.active');if(a)place(a)});
+</script>
+</body>
+</html>
