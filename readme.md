@@ -1,105 +1,269 @@
-# ⚡ Nahid's PowerShell ToolkitT
+<div align="center">
 
-A collection of small, useful Windows utilities — all launched from one slick dashboard, no cloning or setup required.
+# Nahid Power Utilities
 
-```powershell
-irm is.gd/notnahid | iex
-```
+A Windows utility toolkit built with PowerShell, Windows Forms, and a live remote catalog.
 
-Run that in PowerShell and the dashboard opens, ready to launch any tool in the collection.
+[![Stars](https://img.shields.io/github/stars/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell/stargazers)
+[![Forks](https://img.shields.io/github/forks/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell/network/members)
+[![Issues](https://img.shields.io/github/issues/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell/issues)
+[![Last commit](https://img.shields.io/github/last-commit/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell/commits/main)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell/graphs/commit-activity)
+[![Repository size](https://img.shields.io/github/repo-size/NotNahid/powershell?style=flat-square)](https://github.com/NotNahid/powershell)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=flat-square&logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 
-![PowerShell](https://img.shields.io/badge/PowerShell-69.5%25-5391FE?logo=powershell&logoColor=white)
-![Python](https://img.shields.io/badge/Python-30.5%25-3776AB?logo=python&logoColor=white)
-![Platform](https://img.shields.io/badge/platform-Windows-0078D6)
-![Stars](https://img.shields.io/github/stars/NotNahid/powershell?style=social)
+</div>
 
 ---
-# For ME: 
-# Update Just the Utilities.json file with the code and it auto set's it up with is.gd/notnahid, so all works just fine.
-## ✨ What is this?
 
-This repo is a grab-bag of standalone PowerShell (and a few Python) scripts, each solving one small annoying problem — renaming files, organizing downloads, checking network speed, and so on. Instead of digging through the repo for the script you want, `ultimate.ps1` acts as a **dashboard**: a dark/light-themed GUI that lists every tool, lets you search and read what each one does, and downloads + runs it on demand in the background.
+## Overview
 
-It's basically a personal app store for your own scripts.
+Nahid Power Utilities is a collection of small Windows tools with one graphical launcher. The launcher retrieves a JSON catalog over HTTP, validates each entry, renders the available utilities, and downloads a selected script only when it is launched.
 
-## 🚀 Quick Start
+The repository also includes standalone PowerShell tools, Python companions, Windows context-menu utilities, and a web landing page.
 
-Open PowerShell and run:
+<div align="center">
 
-```powershell
+<a href="https://github.com/NotNahid/powershell"><img src="https://github-stats-extended.vercel.app/api/pin/?username=NotNahid&repo=powershell&theme=transparent&hide_border=true" alt="Repository statistics" width="420"></a>
+
+<a href="https://github.com/NotNahid"><img src="https://github-stats-extended.vercel.app/api?username=NotNahid&show_icons=true&theme=transparent&hide_border=true&rank=false" alt="GitHub statistics" width="420"></a>
+
+<a href="https://github.com/NotNahid"><img src="https://github-stats-extended.vercel.app/api/top-langs/?username=NotNahid&layout=compact&theme=transparent&hide_border=true&langs_count=8" alt="Top languages" width="420"></a>
+
+[![GitHub streak](https://streak-stats.demolab.com/?user=NotNahid&theme=transparent&hide_border=true)](https://github.com/DenverCoder1/github-readme-streak-stats)
+
+</div>
+
+## Install
+
+### Run the hosted launcher
+
+The short command below downloads the current launcher through the project's redirect URL.
+
+```
 irm is.gd/notnahid | iex
 ```
 
-This downloads and launches `ultimate.ps1`, which pulls the live tool catalog and shows it in a card-based UI. Click **Run** on any tool, confirm, and it launches in the background — no manual downloading, no `git clone`.
+Only use this option after reviewing and trusting the source. It downloads and executes remote PowerShell code.
 
-> **Heads up:** this one-liner downloads and executes remote code on your machine. That's the whole point of the convenience, but you (and anyone else running it) should know that's what `irm | iex` does. Feel free to open `ultimate.ps1` and read it first if you want to see exactly what it does before running it.
+### Clone and run locally
 
-## 🧰 What's inside
+```
+git clone https://github.com/NotNahid/powershell.git
+Set-Location powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\ultimate.ps1
+```
 
-| Tool | What it does |
-|---|---|
-| **ultimate.ps1** | The main dashboard — searchable, themeable GUI launcher for every tool in this repo |
-| **Portfolio.ps1** | A little desktop app showing an About / Projects / Contact view — basically a PowerShell-native portfolio |
-| **Ghost Typer.ps1** | Auto-types text anywhere on screen |
-| **type-pro.ps1** | An enhanced/extended auto-typing utility |
-| **File Organizer.ps1** | Sorts and organizes files automatically (e.g. by type or date) |
-| **Rename Tool.ps1** | Batch renames files |
-| **Network Speed Monitor.ps1** | Tracks and displays live network/internet speed |
-| **FFmpeg With GUI.ps1** | A graphical front-end for running FFmpeg commands without the command line |
-| **Quick Tools in System Trey.ps1** | A system tray menu for quick access to small utilities |
-| **live_wallpaper.ps1** | Sets an animated/live wallpaper on the desktop |
-| **Python/** | Companion Python scripts used by some of the tools |
-| **Main Links File Json/** | `utilities.json` — the live catalog the dashboard reads from |
+Running locally is the recommended option for inspection, development, and offline changes to the catalog.
 
-## 🛠 How the dashboard works
+## What the launcher does
 
-`ultimate.ps1` doesn't hardcode its tool list. On launch it:
+```
+utilities.json -> HTTP request -> validation -> Windows Forms UI
+                                           |
+                                  select a utility
+                                           |
+                                  download script
+                                           |
+                                  start background job
+```
 
-1. Fetches `utilities.json` from this repo (falls back to a built-in default list if that fails)
-2. Validates each entry (name, link, description, category, tags)
-3. Renders one card per tool in a Catppuccin-inspired dark/light UI
-4. On **Run**, downloads that tool's script and executes it as a background job, with live status updates (Downloading → Starting → Launching → Running → Done)
+`ultimate.ps1` currently provides:
 
-That means adding a new tool to the dashboard is just a matter of adding an entry to `utilities.json` — no need to touch `ultimate.ps1` itself.
+- Remote catalog loading with a local fallback
 
-### Adding your own tool
+- Required-field validation for every catalog entry
 
-Add an object like this to `Main Links File Json/utilities.json`:
+- Searchable utility cards
+
+- Category and tag metadata
+
+- Dark and light themes
+
+- Detail dialogs and tooltips
+
+- Background downloads and launches
+
+- Status updates while a utility is starting
+
+## Utility catalog
+
+The dashboard is driven by [`Main Links File Json/utilities.json`](./Main%20Links%20File%20Json/utilities.json). The catalog is intentionally separate from the UI so new tools can be added without changing `ultimate.ps1`.
+
+| Utility | Category | Description |
+| --- | --- | --- |
+| Ghost Typer | Automation | Auto-type text anywhere |
+| Portfolio | Personal | Open the portfolio website |
+| Rename Tool | File Management | Bulk rename files |
+| FFmpeg With GUI | Editing | Use FFmpeg through a graphical interface |
+| Network Speed Monitor | Network | Monitor network speed |
+| File Organizer | File Management | Organize files with a dedicated tool |
+| Auto Clicker | Productivity | Automate repeated clicks |
+| Live Wallpaper | Fun | Launch the live wallpaper workflow |
+| Quick Tools in System Tray | Productivity | Keep utilities available from the system tray |
+
+## Live APIs and endpoints
+
+The launcher uses ordinary HTTP endpoints instead of a hard-coded tool list.
+
+| Purpose | Endpoint |
+| --- | --- |
+| Hosted launcher | `https://is.gd/notnahid` |
+| Live catalog | `https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Main%20Links%20File%20Json/utilities.json` |
+| Repository API | `https://api.github.com/repos/NotNahid/powershell` |
+| Latest commits API | `https://api.github.com/repos/NotNahid/powershell/commits` |
+| Repository contents API | `https://api.github.com/repos/NotNahid/powershell/contents` |
+| Stats cards | `https://github-stats-extended.vercel.app/api` |
+| Streak stats | `https://streak-stats.demolab.com/` |
+| Badge API | `https://img.shields.io/` |
+
+Example: retrieve the current catalog from PowerShell.
+
+```
+$catalogUrl = "https://raw.githubusercontent.com/NotNahid/powershell/refs/heads/main/Main%20Links%20File%20Json/utilities.json"
+$catalog = Invoke-RestMethod -Uri $catalogUrl
+$catalog | Format-Table Name, Category, Desc
+```
+
+Example: query repository metadata from the GitHub REST API.
+
+```
+$repo = Invoke-RestMethod `
+  -Uri "https://api.github.com/repos/NotNahid/powershell" `
+  -Headers @{ Accept = "application/vnd.github+json" }
+
+$repo | Select-Object full_name, stargazers_count, forks_count, open_issues_count
+```
+
+The statistics shown near the top of this page are also generated dynamically by GitHub-compatible badge and activity APIs rather than being hard-coded in the README.
+
+### Third-party widget sources
+
+The visual widgets above are live images generated when GitHub renders this page:
+
+- [Shields.io](https://shields.io/) provides repository metadata badges such as stars, last commit, commit activity, and repository size.
+
+- [GitHub Stats Extended](https://github.com/stats-organization/github-stats-extended) provides the repository card, account statistics, and language card. It is the maintained successor to the older `github-readme-stats` service.
+
+- [GitHub Readme Streak Stats](https://github.com/DenverCoder1/github-readme-streak-stats) provides total contributions, current streak, and longest streak data through `streak-stats.demolab.com`.
+
+These services are external dependencies. If a provider is rate-limited or unavailable, the project itself still works normally; only the visual cards may be temporarily unavailable.
+
+## Add a utility
+
+Add the script to the repository, then append an object to `utilities.json`:
 
 ```json
 {
-  "Name": "My Cool Tool",
-  "Link": "https://raw.githubusercontent.com/you/repo/main/my-tool.ps1",
-  "Desc": "One-line description of what it does",
+  "Name": "My Utility",
+  "Link": "https://raw.githubusercontent.com/your-user/your-repo/main/my-utility.ps1",
+  "Desc": "Short description of the utility",
   "Category": "Automation",
-  "Tags": ["productivity", "windows"]
+  "Tags": ["windows", "productivity", "utility"]
 }
 ```
 
-It'll show up in the dashboard automatically next time it loads the catalog.
+The launcher validates these fields:
 
-## 📋 Requirements
+| Field | Type | Required |
+| --- | --- | --- |
+| `Name` | string | Yes |
+| `Link` | URL string | Yes |
+| `Desc` | string | Yes |
+| `Category` | string | Yes |
+| `Tags` | array of strings | Yes |
 
-- Windows (Windows Forms is used for the GUI)
-- PowerShell 5.1+ (ships with Windows by default)
-- Internet connection (to fetch the catalog and individual tool scripts)
+Use raw HTTPS URLs, keep descriptions short, and test the script independently before adding it to the live catalog.
 
-## 🤝 Contributing
+## Repository layout
 
-Got a small utility you think belongs here? Open a PR adding the script plus an entry in `utilities.json`. Keep scripts self-contained where possible so they can be downloaded and run independently.
+```
+.
+├── ultimate.ps1
+├── Main Links File Json/
+│   └── utilities.json
+├── Auto Clicker.ps1
+├── File Organizer.ps1
+├── FFmpeg With GUI.ps1
+├── Ghost Typer.ps1
+├── Network Speed Monitor.ps1
+├── Quick Tools in System Trey.ps1
+├── Rename Tool.ps1
+├── live_wallpaper.ps1
+├── Portfolio.ps1
+├── Right-click/
+├── Python/
+├── index.html
+└── SECURITY.md
+```
 
-## 👤 Author
+## Requirements
 
-**Nahid** — Web developer (front-end, diving into full-stack)
+- Windows 10 or newer
+
+- Windows PowerShell 5.1 or PowerShell 7+
+
+- Windows Forms support for the graphical launcher
+
+- Internet access when using the live catalog or remote script links
+
+- Python for the Python-based companion utilities
+
+## Development
+
+```
+# Clone the project
+git clone https://github.com/NotNahid/powershell.git
+Set-Location powershell
+
+# Run a local utility
+.\Rename Tool.ps1
+
+# Run the dashboard
+.\ultimate.ps1
+
+# Inspect the catalog
+Get-Content ".\Main Links File Json\utilities.json" -Raw | ConvertFrom-Json
+```
+
+Before opening a pull request:
+
+1. Test the script on Windows.
+
+1. Check that it does not contain credentials or machine-specific paths.
+
+1. Document downloads, permissions, and side effects.
+
+1. Add the catalog entry with an accurate category and description.
+
+1. Keep the change focused.
+
+## Security
+
+The launcher can download and execute remote PowerShell scripts. Treat every link in the catalog as executable code.
+
+Review scripts before running them, use the local clone when auditing changes, and avoid running unfamiliar tools on systems containing sensitive data. For vulnerability reports, see [`SECURITY.md`](./SECURITY.md). For normal bugs, open an [issue](https://github.com/NotNahid/powershell/issues) with reproduction steps and environment details.
+
+## Related project page
+
+The repository includes [`index.html`](./index.html), an interactive web page that presents the toolkit and its utilities in a browser.
+
+## Author
+
+**Nahid**
 
 - GitHub: [@NotNahid](https://github.com/NotNahid)
-- Website: [nahid.rf.gd](https://nahid.rf.gd/)
-- Email: nahidul.live@gmail.com
 
-## 🐞 Known Issues
+- Website: [notnahid.rf.gd](https://notnahid.rf.gd/)
 
-Some tools have a bug where they don't close properly when you hit the close/exit button — being worked on. Until it's fixed, if a tool won't close, open **Task Manager** (`Ctrl+Shift+Esc`), find the process, and click **End Task**.
+- Email: [nahidul.live@gmail.com](mailto:nahidul.live@gmail.com)
 
-## ⚠️ Disclaimer
+---
 
-These are personal utility scripts shared as-is. Review any script before running it on a machine you care about, especially since the dashboard's whole model is "download and execute remote code." No warranty, no guarantees — just tools that made my own workflow easier.
+<div align="center">
+
+[View source](https://github.com/NotNahid/powershell) · [Open an issue](https://github.com/NotNahid/powershell/issues) · [Browse the catalog](./Main%20Links%20File%20Json/utilities.json)
+
+</div>
